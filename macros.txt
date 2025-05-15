@@ -1,0 +1,114 @@
+Sub ExportStyledContractNote()
+
+    Dim wbTemp As Workbook
+    Dim wsCSV As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+    Dim groupName As String
+
+    ' Use active workbook (your opened CSV)
+    Set wbCSV = ThisWorkbook
+    Set wsCSV = wbCSV.Sheets(1)
+
+    ' Get last row
+    lastRow = wsCSV.Cells.Find("*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious).Row
+    MsgBox "lastRow: " & lastRow
+
+    ' Loop through each row
+    For i = 2 To lastRow
+        groupName = wsCSV.Cells(i, 1).Value
+        MsgBox "Group Name: " & groupName
+        
+        Set wsOutput = Workbooks.Add(xlWBATWorksheet).Sheets(1)
+        wsOutput.Name = "PDF_Contract"
+        
+        With wsOutput
+            .Cells.Font.Name = "Calibri"
+            .Cells.Font.Size = 65
+            
+            ' Header
+            .Range("B2:H2").Merge
+            .Range("B2").Value = "Delta Asset Management Incorporated VCC Sub-Fund"
+            .Range("B2").Font.Bold = True
+            
+            .Range("B3:H3").Merge
+            .Range("B3").Value = "712, Nexsky Tower, 7th floor, Ebene Cybercity, Mauritius"
+            
+            
+            .Range("B2:H4").HorizontalAlignment = xlCenter
+            
+            ' Trade info
+            .Range("G5").Value = "Trade Date: "
+            .Range("H5").Value = wsCSV.Cells(i, 3).Value
+            
+            .Range("G6").Value = "Contract Number: "
+            .Range("H6").Value = wsCSV.Cells(i, 4).Value
+            
+            .Range("B6").Value = "Issued in the name of:"
+            .Range("B7").Value = wsCSV.Cells(i, 1).Value
+            .Range("B8").Value = wsCSV.Cells(i, 2).Value
+            .Range("B7").Font.Bold = True
+            .Range("B8").Font.Bold = True
+            .Range("B2").Font.Size = 55
+
+            
+            .Range("B10").Value = "In accordance with your instructions, we confirm having issued the following Units in:"
+            .Range("B11").Value = wsCSV.Cells(i, 5).Value
+            .Range("B11").Font.Bold = True
+
+            
+            
+            .Range("B13").Value = "Number of shares"
+            .Range("C13").Value = wsCSV.Cells(i, 6).Value
+            
+            .Range("B14").Value = "N.A.V"
+            .Range("C14").Value = wsCSV.Cells(i, 7).Value
+            .Range("C14").Font.Underline = xlUnderlineStyleSingle
+            
+            .Range("B16").Value = "Total Amount"
+            .Range("B16").Font.Bold = True
+            .Range("C16").Value = wsCSV.Cells(i, 8).Value
+            .Range("C16").Font.Underline = xlUnderlineStyleSingle
+            .Range("C16").Font.Bold = True
+            
+            .Range("B21").Value = "Date of Contract Note: " & wsCSV.Cells(i, 9).Value
+            
+            fullText = "For any discrepancy in the particulars given above; please email us on ops@apexasset.ai by quoting the Contract Number."
+            .Range("B19").Value = fullText
+            .Range("B19").Font.Size = 50
+            emailPos = InStr(fullText, "ops@apexasset.ai")
+            If emailPos > 0 Then
+                .Range("B19").Characters(Start:=emailPos, Length:=17).Font.Color = RGB(0, 112, 192)
+            End If
+            
+            
+    
+            .Columns("A:H").AutoFit
+        End With
+        
+        ' Set print settings
+        With wsOutput.PageSetup
+            .Orientation = xlPortrait
+            .PaperSize = xlPaperA4
+            .Zoom = False
+            .FitToPagesWide = 1
+            .FitToPagesTall = False
+            .PrintArea = "B2:H22"
+        End With
+        
+        ' Save PDF (keep using CSV's path)
+        pdfPath = Environ$("USERPROFILE") & "\Desktop\Swati\Output\" & "Contract_Note_" & wsCSV.Cells(i, 1).Value & ".pdf"
+
+        wsOutput.Parent.ExportAsFixedFormat Type:=xlTypePDF, Filename:=pdfPath, _
+            Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas:=False, OpenAfterPublish:=True
+    
+     
+        ' Close temp workbook without saving
+        wsOutput.Parent.Close SaveChanges:=False
+ 
+    Next i
+
+End Sub
+
+
+
